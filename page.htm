@@ -77,8 +77,8 @@
             //cube.rotation.z += 0.01;
             cubeArray.forEach(i=>{
                 i.position.z += 0.1;
-                if(i.position.z>10){
-                    i.position.z=-20;
+                if(i.position.z>-zstart){
+                    i.position.z=zstart;
                 }
             })
             renderer.render( scene, camera );
