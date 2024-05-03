@@ -78,7 +78,7 @@
             cubeArray.forEach(i=>{
                 i.position.z += 0.1;
                 if(i.position.z>(colnum/2)){
-                    i.position.z=zstart;
+                    i.position.z=-(colnum/2);
                 }
             })
             renderer.render( scene, camera );
