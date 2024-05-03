@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html,body{padding:0;margin:0;overflow: hidden;}
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r99/three.min.js"
+        integrity="sha512-0tlhMhMGPohLm/YwaskxH7jJuUGqU/XPTl+HE0dWrhGbpEBRIZYMQdbHC0CmyNPzZKTBd8JoVZnvMcL7hzlFOg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+
+        /*const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        const cube2 = new THREE.Mesh(geometry, material);
+        scene.add(cube2);*/
+        
+        var cubeArray = [];
+        
+        var colnum=50;
+        var rownum=20;
+        var cubnum = colnum* rownum;
+        for(var i=0;i< cubnum;i++){
+            //const geometry = new THREE.BoxGeometry(1, 1, 1);
+            //const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            //const cube = new THREE.Mesh(geometry, material);
+            //cube.position.x = 60 * i;
+            const geometry = new THREE.BoxGeometry(1, Math.floor(Math.random()*6), 1);
+            var colorRed = Math.floor(Math.random()*255);
+            var colorGreen = Math.floor(Math.random() * 255);
+            var colorBlue = Math.floor(Math.random() * 255);
+            const material = new THREE.MeshBasicMaterial({ color: "rgb("+ colorRed+"," + colorGreen +"," + colorBlue +")" });
+            cubeArray.push(new THREE.Mesh(geometry, material));
+        }
+
+        var xstart= -(rownum/2);
+        var zstart= -(colnum/2);
+
+        for(var i=0;i< cubeArray.length;i++){
+            scene.add(cubeArray[i]);
+            cubeArray[i].position.y = -4;
+            /*cubeArray[i].position.x = Math.floor(Math.random()* cubnum)-(cubnum/2);
+            cubeArray[i].position.z = Math.floor(Math.random() * cubnum) - (cubnum / 2);*/
+            cubeArray[i].position.x = xstart;
+            cubeArray[i].position.z = zstart;
+            if(xstart> (rownum / 2)){
+                xstart = -(rownum / 2);
+                zstart +=1;
+            }else{
+                xstart+=1;
+            }
+        }
+
+        console.log(cubeArray);
+
+        camera.position.z = 5;
+        
+
+        function animate() {
+            requestAnimationFrame( animate );
+            //cube.rotation.x += 0.01;
+            //cube.rotation.y += 0.01;
+            //cube.rotation.z += 0.01;
+            cubeArray.forEach(i=>{
+                i.position.z += 0.1;
+                if(i.position.z>10){
+                    i.position.z=-20;
+                }
+            })
+            renderer.render( scene, camera );
+        }
+        animate();
+    </script>
+</body>
+</html>
