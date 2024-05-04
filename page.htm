@@ -32,7 +32,15 @@
         const cube2 = new THREE.Mesh(geometry, material);
         scene.add(cube2);*/
 
+        //光定位箱1
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const lightcube1 = new THREE.Mesh(geometry, material);
+        //scene.add(lightcube1);
+
+
         var cubeArray = [];
+        var cubeArrayTop = [];
         
         var colnum=50;
         var rownum=100;
@@ -40,10 +48,10 @@
 
         //地板構成
         const floorGeo = new THREE.BoxGeometry(colnum, 0.01, colnum);
-        const floorMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const floorMat = new THREE.MeshBasicMaterial({ color: 0x999999 });
         const floorBox = new THREE.Mesh(floorGeo, floorMat);
         
-        scene.add(floorBox);
+        //scene.add(floorBox);
 
         floorBox.position.y = -4;
 
@@ -51,42 +59,68 @@
         const glassMap = new THREE.TextureLoader().load(
             'Texture/Glass_Blocks_001a_Base_Color.jpg'
         );
-        glassMap.repeat.set(5,5);
+        glassMap.repeat.set(1,4);
         glassMap.wrapS = THREE.RepeatWrapping;
-        glassMap.wrapS = THREE.RepeatWrapping;
+        glassMap.wrapT = THREE.RepeatWrapping;
 
         //載入貼圖2
         const roughnessMap = new THREE.TextureLoader().load(
             'Texture/Glass_Blocks_001a_Roughness.jpg'
         );
-        roughnessMap.repeat.set(5,5);
+        //roughnessMap.repeat.set(5,5);
         roughnessMap.wrapS = THREE.RepeatWrapping;
-        roughnessMap.wrapS = THREE.RepeatWrapping;
+        roughnessMap.wrapT = THREE.RepeatWrapping;
 
-        //材質設定
-        const glassMat = new THREE.MeshStandardMaterial({
-            roughness: 1, // 粗糙度
-            metalness: 0.9, // 金屬感
-            transparent: false, // 透明與否
-            opacity: 1, // 透明度
-            side: THREE.DoubleSide, // 雙面材質
-            map: glassMap, // 皮膚貼圖
-            roughnessMap:roughnessMap
-        });
+        //載入貼圖3
+        const normalMap = new THREE.TextureLoader().load(
+            'Texture/Glass_Blocks_001a_Normal.jpg'
+        );
+        normalMap.wrapT = THREE.RepeatWrapping;
+        normalMap.wrapS = THREE.RepeatWrapping;
 
-        
-        
+        //載入貼圖4
+        const ambientOcclusionMap = new THREE.TextureLoader().load(
+            'Texture/Glass_Blocks_001a_ambientOcclusion.jpg'
+        );
+        ambientOcclusionMap.wrapT = THREE.RepeatWrapping;
+        ambientOcclusionMap.wrapS = THREE.RepeatWrapping;
+
+        //載入貼圖5
+        const glassMetalnessMap = new THREE.TextureLoader().load(
+            'Texture/Glass_Blocks_001a_Glass.jpg'
+        );
+        //normalMap.repeat.set(5,5);
+        glassMetalnessMap.wrapT = THREE.RepeatWrapping;
+        glassMetalnessMap.wrapS = THREE.RepeatWrapping;
+
+        //虛擬建築物定位
         for(var i=0;i< cubnum;i++){
             //const geometry = new THREE.BoxGeometry(1, 1, 1);
             //const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
             //const cube = new THREE.Mesh(geometry, material);
             //cube.position.x = 60 * i;
+            var colorRed = Math.floor(Math.random()*55)+200;
+            var colorGreen = Math.floor(Math.random() * 155)+50;
+            var colorBlue = Math.floor(Math.random() * 55)+200;
             const geometry = new THREE.BoxGeometry(0.5, (Math.floor(Math.random()*30)/10)+2, 0.5);
-            var colorRed = Math.floor(Math.random()*255);
-            var colorGreen = Math.floor(Math.random() * 255);
-            var colorBlue = Math.floor(Math.random() * 255);
-            const material = new THREE.MeshBasicMaterial({ color: "rgb("+ colorRed+"," + colorGreen +"," + colorBlue +")" });
+            //材質設定
+            const glassMat = new THREE.MeshStandardMaterial({
+                color: "rgb("+ colorRed+"," + colorGreen +"," + colorBlue +")",
+                roughness: 0.9, // 粗糙度
+                metalness: 0.5, // 金屬感
+                transparent: false, // 透明與否
+                opacity: 1, // 透明度
+                side: THREE.DoubleSide, // 雙面材質
+                map: glassMap, // 皮膚貼圖
+                roughnessMap:roughnessMap,//粗糙貼圖
+                normalMap:normalMap, //髮線貼圖
+                lightMap:ambientOcclusionMap, //光照贴图
+                metalnessMap:glassMetalnessMap //金屬貼圖
+            });
+            
+            //const material = new THREE.MeshBasicMaterial({ color: "rgb("+ colorRed+"," + colorGreen +"," + colorBlue +")" });
             cubeArray.push(new THREE.Mesh(geometry, glassMat));
+            cubeArrayTop.push(new THREE.Mesh(geometry, glassMat));
         }
 
         var xstart= -(rownum/2);
@@ -106,34 +140,55 @@
                 xstart+=1;
             }
         }
+        var xstart= -(rownum/2);
+        var zstart= -(colnum/2);
+        for(var i=0;i< cubeArrayTop.length;i++){
+            scene.add(cubeArrayTop[i]);
+            cubeArrayTop[i].position.y = 4;
+            /*cubeArray[i].position.x = Math.floor(Math.random()* cubnum)-(cubnum/2);
+            cubeArray[i].position.z = Math.floor(Math.random() * cubnum) - (cubnum / 2);*/
+            cubeArrayTop[i].position.x = xstart;
+            cubeArrayTop[i].position.z = zstart;
+            if(xstart> (rownum / 2)){
+                xstart = -(rownum / 2);
+                zstart +=1;
+            }else{
+                xstart+=1;
+            }
+        }
+
+
+
         //場景背景
-        scene.background = new THREE.Color(0xFFFFFF);
+        scene.background = new THREE.Color(0x000000);
         //霧化場景
-        scene.fog = new THREE.Fog(0xFFFFFF,10,15);
+        scene.fog = new THREE.Fog(0x000000,10,15);
 
         //環境光
-        let ambientLight = new THREE.AmbientLight('#FFFFFF')
-        scene.add(ambientLight)
+        let ambientLight = new THREE.AmbientLight('#DDFFDD')
+        //scene.add(ambientLight)
 
 
-        /*
+        
         //聚光燈
-        let spoltLight = new THREE.SpotLight(0xFFFFFF);
+        let spoltLight = new THREE.SpotLight(0x336699);
         // 設定光源位置
-        spoltLight.position.set(1, -2, 1);
+        spoltLight.position.set(-6, 0, 0);
         // 設定光源目標
-        spoltLight.target = floorBox;
+        spoltLight.target = lightcube1;
         scene.add(spoltLight);
-        */
+        
 
-        const directionalLight = new THREE.DirectionalLight( 0xffffff, 6 );
-        directionalLight.target = floorBox;
+        const directionalLight = new THREE.DirectionalLight( 0x66FF99, 0.5 );
+        directionalLight.target = lightcube1;
         scene.add( directionalLight );
 
         directionalLight.position.z=1;
         directionalLight.position.y=0;
 
         camera.position.z = 5;
+        camera.position.y = -1;
+        camera.rotation.x=0.2;
         
         var cameraTrunRight=true;
 
@@ -153,13 +208,22 @@
             }else if(!cameraTrunRight && camera.rotation.y<=-0.4){
                 cameraTrunRight=true;
             }
+
+            spoltLight.rotation.x += 0.01;
+            spoltLight.rotation.y += 0.01;
             
             cubeArray.forEach(i=>{
                 i.position.z += 0.1;
                 if(i.position.z>(colnum/2)){
-                    i.position.z=-(colnum/2)+3;
+                    i.position.z=-(colnum/2);
                 }
-            })
+            });
+            cubeArrayTop.forEach(i=>{
+                i.position.z += 0.1;
+                if(i.position.z>(colnum/2)){
+                    i.position.z=-(colnum/2);
+                }
+            });
             renderer.render( scene, camera );
         }
         animate();

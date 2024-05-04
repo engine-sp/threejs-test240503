@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html,body{padding:0;margin:0;overflow: hidden;}
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r99/three.min.js"
+        integrity="sha512-0tlhMhMGPohLm/YwaskxH7jJuUGqU/XPTl+HE0dWrhGbpEBRIZYMQdbHC0CmyNPzZKTBd8JoVZnvMcL7hzlFOg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        //3D Texture:https://3dtextures.me/2019/12/27/glass-blocks-001a/
+        //light:https://ithelp.ithome.com.tw/m/articles/10192203
+        //霧：https://github.com/puxiao/threejs-tutorial/blob/main/14%20Three.js%E5%9F%BA%E7%A1%80%E4%B9%8B%E9%9B%BE.md
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+        //載入貼圖1
+        const glassMap = new THREE.TextureLoader().load(
+            'Texture/Glass_Blocks_001a_Base_Color.jpg'
+        );
+        glassMap.wrapT = THREE.RepeatWrapping;
+        glassMap.wrapS = THREE.RepeatWrapping;
+
+        //載入貼圖2
+        const roughnessMap = new THREE.TextureLoader().load(
+            'Texture/Glass_Blocks_001a_Roughness.jpg'
+        );
+        roughnessMap.wrapT = THREE.RepeatWrapping;
+        roughnessMap.wrapS = THREE.RepeatWrapping;
+
+        //載入貼圖3
+        const normalMap = new THREE.TextureLoader().load(
+            'Texture/Glass_Blocks_001a_Normal.jpg'
+        );
+        normalMap.wrapT = THREE.RepeatWrapping;
+        normalMap.wrapS = THREE.RepeatWrapping;
+
+        //載入貼圖4
+        const ambientOcclusionMap = new THREE.TextureLoader().load(
+            'Texture/Glass_Blocks_001a_ambientOcclusion.jpg'
+        );
+        ambientOcclusionMap.wrapT = THREE.RepeatWrapping;
+        ambientOcclusionMap.wrapS = THREE.RepeatWrapping;
+
+        //載入貼圖5
+        const glassMetalnessMap = new THREE.TextureLoader().load(
+            'Texture/Glass_Blocks_001a_Glass.jpg'
+        );
+        //normalMap.repeat.set(5,5);
+        glassMetalnessMap.wrapT = THREE.RepeatWrapping;
+        glassMetalnessMap.wrapS = THREE.RepeatWrapping;
+        
+        var colorRed = Math.floor(Math.random()*255);
+        var colorGreen = Math.floor(Math.random() * 255);
+        var colorBlue = Math.floor(Math.random() * 255);
+
+        //材質設定
+        const glassMat = new THREE.MeshStandardMaterial({
+            color: "rgb("+ colorRed+"," + colorGreen +"," + colorBlue +")",
+            roughness: 0.3, // 粗糙度
+            metalness: 0.1, // 金屬感
+            transparent: false, // 透明與否
+            opacity: 1, // 透明度
+            side: THREE.DoubleSide, // 雙面材質
+            map: glassMap, // 皮膚貼圖
+            roughnessMap:roughnessMap, //粗糙貼圖
+            normalMap:normalMap, //髮線貼圖
+            lightMap:ambientOcclusionMap, //光照贴图
+            metalnessMap:glassMetalnessMap //金屬貼圖
+        });
+
+
+        const geometry = new THREE.BoxGeometry(1, 2, 1);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, glassMat);
+        scene.add(cube);
+
+        
+        
+        
+
+        
+        //場景背景
+        scene.background = new THREE.Color(0xFFFFFF);
+        //霧化場景
+        scene.fog = new THREE.Fog(0xFFFFFF,10,15);
+
+        //環境光
+        let ambientLight = new THREE.AmbientLight('#FFFFFF')
+        scene.add(ambientLight)
+
+
+        /*
+        //聚光燈
+        let spoltLight = new THREE.SpotLight(0xFFFFFF);
+        // 設定光源位置
+        spoltLight.position.set(1, -2, 1);
+        // 設定光源目標
+        spoltLight.target = cube;
+        scene.add(spoltLight);
+        */
+
+        const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+        directionalLight.target = cube;
+        scene.add( directionalLight );
+
+        directionalLight.position.z=1;
+        directionalLight.position.y=0;
+
+        camera.position.z = 5;
+        
+
+        function animate() {
+            requestAnimationFrame( animate );
+            cube.rotation.x += 0.01;
+            //cube.rotation.y += 0.01;
+            //cube.rotation.z += 0.01;
+            renderer.render( scene, camera );
+        }
+        animate();
+    </script>
+</body>
+</html>
