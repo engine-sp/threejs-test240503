@@ -9,48 +9,61 @@
     </style>
 </head>
 <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r99/three.min.js"
-        integrity="sha512-0tlhMhMGPohLm/YwaskxH7jJuUGqU/XPTl+HE0dWrhGbpEBRIZYMQdbHC0CmyNPzZKTBd8JoVZnvMcL7hzlFOg=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script>
+    <script type="importmap">
+        {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/",
+            "three/EffectComposer": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/postprocessing/EffectComposer.js",
+            "three/RenderPass": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/postprocessing/RenderPass.js",
+            "three/UnrealBloomPass": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/postprocessing/UnrealBloomPass.js"
+        }
+        }
+    </script>
+    <script type="module">
         //3D Texture:https://3dtextures.me/2019/12/27/glass-blocks-001a/
         //light:https://ithelp.ithome.com.tw/m/articles/10192203
         //霧：https://github.com/puxiao/threejs-tutorial/blob/main/14%20Three.js%E5%9F%BA%E7%A1%80%E4%B9%8B%E9%9B%BE.md
+        import * as THREE from 'three';
+        import { EffectComposer } from "three/EffectComposer";
+        import { RenderPass } from "three/RenderPass";
+        import { UnrealBloomPass } from "three/UnrealBloomPass";
+
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1500);
 
         const renderer = new THREE.WebGLRenderer();
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        document.body.appendChild( renderer.domElement );
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
 
         /*const geometry = new THREE.BoxGeometry(1, 1, 1);
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
         const cube = new THREE.Mesh(geometry, material);
         scene.add(cube);
-
+        
         const cube2 = new THREE.Mesh(geometry, material);
         scene.add(cube2);*/
 
         //光定位箱1
         const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, /*透明與否*/ opacity: 0, /*透明度*/ });
         const lightcube1 = new THREE.Mesh(geometry, material);
-        //scene.add(lightcube1);
-
+        scene.add(lightcube1);
+        
 
         var cubeArray = [];
         var cubeArrayTop = [];
-        
-        var colnum=25;
-        var rownum=50;
-        var cubnum = colnum* rownum;
+
+        var colnum = 25;
+        var rownum = 50;
+        var cubnum = colnum * rownum;
 
         //地板構成
         const floorGeo = new THREE.BoxGeometry(colnum, 0.01, colnum);
         const floorMat = new THREE.MeshBasicMaterial({ color: 0x999999 });
         const floorBox = new THREE.Mesh(floorGeo, floorMat);
-        
+
         //scene.add(floorBox);
 
         floorBox.position.y = -4;
@@ -59,7 +72,7 @@
         const glassMap = new THREE.TextureLoader().load(
             'Texture/Glass_Blocks_001a_Base_Color.jpg'
         );
-        glassMap.repeat.set(1,4);
+        glassMap.repeat.set(1, 4);
         glassMap.wrapS = THREE.RepeatWrapping;
         glassMap.wrapT = THREE.RepeatWrapping;
 
@@ -67,7 +80,7 @@
         const roughnessMap = new THREE.TextureLoader().load(
             'Texture/Glass_Blocks_001a_Roughness.jpg'
         );
-        //roughnessMap.repeat.set(5,5);
+        roughnessMap.repeat.set(1, 4);
         roughnessMap.wrapS = THREE.RepeatWrapping;
         roughnessMap.wrapT = THREE.RepeatWrapping;
 
@@ -75,6 +88,7 @@
         const normalMap = new THREE.TextureLoader().load(
             'Texture/Glass_Blocks_001a_Normal.jpg'
         );
+        normalMap.repeat.set(1, 4);
         normalMap.wrapT = THREE.RepeatWrapping;
         normalMap.wrapS = THREE.RepeatWrapping;
 
@@ -82,6 +96,7 @@
         const ambientOcclusionMap = new THREE.TextureLoader().load(
             'Texture/Glass_Blocks_001a_ambientOcclusion.jpg'
         );
+        ambientOcclusionMap.repeat.set(1, 4);
         ambientOcclusionMap.wrapT = THREE.RepeatWrapping;
         ambientOcclusionMap.wrapS = THREE.RepeatWrapping;
 
@@ -89,71 +104,100 @@
         const glassMetalnessMap = new THREE.TextureLoader().load(
             'Texture/Glass_Blocks_001a_Glass.jpg'
         );
-        //normalMap.repeat.set(5,5);
+        glassMetalnessMap.repeat.set(1, 4);
         glassMetalnessMap.wrapT = THREE.RepeatWrapping;
         glassMetalnessMap.wrapS = THREE.RepeatWrapping;
 
+
         //虛擬建築物定位
-        for(var i=0;i< cubnum;i++){
+        for (var i = 0; i < cubnum; i++) {
             //const geometry = new THREE.BoxGeometry(1, 1, 1);
             //const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
             //const cube = new THREE.Mesh(geometry, material);
             //cube.position.x = 60 * i;
-            var colorRed = Math.floor(Math.random()*55)+200;
-            var colorGreen = Math.floor(Math.random() * 155)+50;
-            var colorBlue = Math.floor(Math.random() * 55)+200;
-            const geometry = new THREE.BoxGeometry(0.5, (Math.floor(Math.random()*30)/10)+2, 0.5);
+            var colorRed = Math.floor(Math.random() * 55) + 200;
+            var colorGreen = Math.floor(Math.random() * 155) + 50;
+            var colorBlue = Math.floor(Math.random() * 55) + 200;
+            const cubeHeight = (Math.floor(Math.random() * 30) / 10) + 2;
+            const geometry = new THREE.BoxGeometry(0.5, cubeHeight, 0.5);
+            const geometry2 = new THREE.BoxGeometry(0.12, 0.12, 0.1);
             //材質設定
             const glassMat = new THREE.MeshStandardMaterial({
-                color: "rgb("+ colorRed+"," + colorGreen +"," + colorBlue +")",
-                roughness: 0.9, // 粗糙度
-                metalness: 0.5, // 金屬感
+                color: "rgb(" + colorRed + "," + colorGreen + "," + colorBlue + ")",
+                roughness: 1, // 粗糙度
+                metalness: 0.6, // 金屬感
                 transparent: false, // 透明與否
-                opacity: 1, // 透明度
-                side: THREE.DoubleSide, // 雙面材質
-                map: glassMap, // 皮膚貼圖
-                roughnessMap:roughnessMap,//粗糙貼圖
-                normalMap:normalMap, //髮線貼圖
-                lightMap:ambientOcclusionMap, //光照贴图
-                metalnessMap:glassMetalnessMap //金屬貼圖
+                opacity: 0.85, // 透明度
+                //side: THREE.DoubleSide, // 雙面材質
+                side: THREE.FrontSide, // 雙面材質
+                //map: glassMap, // 皮膚貼圖
+                roughnessMap: roughnessMap,//粗糙貼圖
+                //normalMap: normalMap, //髮線貼圖
+                //lightMap: ambientOcclusionMap, //光照贴图
+                //metalnessMap: glassMetalnessMap, //金屬貼圖
             });
-            
+            const glassMat2 = new THREE.MeshStandardMaterial({
+                //color: "rgb(255,255,0)",
+                metalness: 1, // 金屬感
+                transparent: false, // 透明與否
+                side: THREE.FrontSide, // 雙面材質
+                emissive: "rgb(" + colorRed + "," + colorGreen + "," + colorBlue + ")",
+                emissiveIntensity: 2.5,
+            });
+            const cubeA = new THREE.Mesh(geometry, glassMat);
+            const cubeB = new THREE.Mesh(geometry2, glassMat2);
+            const cubeATop = new THREE.Mesh(geometry, glassMat);
+            const cubeBTop = new THREE.Mesh(geometry2, glassMat2);
+            const group = new THREE.Group();
+            const groupTop = new THREE.Group();
+            group.add(cubeA);
+            group.add(cubeB);
+            groupTop.add(cubeATop);
+            groupTop.add(cubeBTop);
+            const posz = 0.21;
+            cubeB.position.z = posz;
+            cubeB.position.y = cubeHeight / 3;
+            cubeB.position.x = (Math.random() * 0.2) - 0.1;
+            cubeBTop.position.z = posz;
+            cubeBTop.position.y = -(cubeHeight / 3);
+            cubeBTop.position.x = (Math.random() * 0.2) - 0.1;
+
             //const material = new THREE.MeshBasicMaterial({ color: "rgb("+ colorRed+"," + colorGreen +"," + colorBlue +")" });
-            cubeArray.push(new THREE.Mesh(geometry, glassMat));
-            cubeArrayTop.push(new THREE.Mesh(geometry, glassMat));
+            cubeArray.push(group);
+            cubeArrayTop.push(groupTop);
         }
 
-        var xstart= -(rownum/2);
-        var zstart= -(colnum/2);
+        var xstart = -(rownum / 2);
+        var zstart = -(colnum / 2);
 
-        for(var i=0;i< cubeArray.length;i++){
+        for (var i = 0; i < cubeArray.length; i++) {
             scene.add(cubeArray[i]);
             cubeArray[i].position.y = -4;
             /*cubeArray[i].position.x = Math.floor(Math.random()* cubnum)-(cubnum/2);
             cubeArray[i].position.z = Math.floor(Math.random() * cubnum) - (cubnum / 2);*/
             cubeArray[i].position.x = xstart;
             cubeArray[i].position.z = zstart;
-            if(xstart> (rownum / 2)){
+            if (xstart > (rownum / 2)) {
                 xstart = -(rownum / 2);
-                zstart +=1;
-            }else{
-                xstart+=1;
+                zstart += 1;
+            } else {
+                xstart += 1;
             }
         }
-        var xstart= -(rownum/2);
-        var zstart= -(colnum/2);
-        for(var i=0;i< cubeArrayTop.length;i++){
+        var xstart = -(rownum / 2);
+        var zstart = -(colnum / 2);
+        for (var i = 0; i < cubeArrayTop.length; i++) {
             scene.add(cubeArrayTop[i]);
             cubeArrayTop[i].position.y = 4;
             /*cubeArray[i].position.x = Math.floor(Math.random()* cubnum)-(cubnum/2);
             cubeArray[i].position.z = Math.floor(Math.random() * cubnum) - (cubnum / 2);*/
             cubeArrayTop[i].position.x = xstart;
             cubeArrayTop[i].position.z = zstart;
-            if(xstart> (rownum / 2)){
+            if (xstart > (rownum / 2)) {
                 xstart = -(rownum / 2);
-                zstart +=1;
-            }else{
-                xstart+=1;
+                zstart += 1;
+            } else {
+                xstart += 1;
             }
         }
 
@@ -162,14 +206,14 @@
         //場景背景
         scene.background = new THREE.Color(0x000000);
         //霧化場景
-        scene.fog = new THREE.Fog(0x000000,10,15);
+        scene.fog = new THREE.Fog(0x000000, 10, 15);
 
         //環境光
-        let ambientLight = new THREE.AmbientLight('#DDFFDD')
+        let ambientLight = new THREE.AmbientLight('#669966')
         //scene.add(ambientLight)
 
 
-        
+
         //聚光燈
         let spoltLight = new THREE.SpotLight(0x336699);
         // 設定光源位置
@@ -177,54 +221,70 @@
         // 設定光源目標
         spoltLight.target = lightcube1;
         scene.add(spoltLight);
-        
 
-        const directionalLight = new THREE.DirectionalLight( 0x66FF99, 0.5 );
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
         directionalLight.target = lightcube1;
-        scene.add( directionalLight );
+        scene.add(directionalLight);
 
-        directionalLight.position.z=1;
-        directionalLight.position.y=0;
+        directionalLight.position.z = 1;
+        directionalLight.position.y = 0;
 
         camera.position.z = 5;
-        camera.position.y = -1;
-        camera.rotation.x=0.2;
-        
-        var cameraTrunRight=true;
+        camera.position.y = -1.2;
+        camera.rotation.x = 0.1;
 
-        var spoltLightTrunRight=true;
+        // 5. 建立 UnrealBloomPass 物件
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+
+        // 6. 建立合成器
+        const composer = new EffectComposer(renderer);
+        composer.setSize(window.innerWidth, window.innerHeight);
+
+        // 7. 將 UnrealBloomPass 加入合成器
+        const renderScene = new RenderPass(scene, camera);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
+
+
+        var cameraTrunRight = true;
+
+        var spoltLightTrunRight = true;
 
         function animate() {
-            requestAnimationFrame( animate );
+            requestAnimationFrame(animate);
             //cube.rotation.x += 0.01;
             //cube.rotation.y += 0.01;
             //cube.rotation.z += 0.01;
-            if(cameraTrunRight && camera.rotation.y<0.4){
+            if (cameraTrunRight && camera.rotation.y < 0.4) {
                 camera.rotation.y += 0.001;
-            }else if(cameraTrunRight && camera.rotation.y>=0.4){
-                cameraTrunRight=false;
-            }else if(!cameraTrunRight && camera.rotation.y>-0.4){
+                lightcube1.position.x += 0.005;
+            } else if (cameraTrunRight && camera.rotation.y >= 0.4) {
+                cameraTrunRight = false;
+            } else if (!cameraTrunRight && camera.rotation.y > -0.4) {
                 camera.rotation.y -= 0.001;
-            }else if(!cameraTrunRight && camera.rotation.y<=-0.4){
-                cameraTrunRight=true;
+                lightcube1.position.x -= 0.005;
+            } else if (!cameraTrunRight && camera.rotation.y <= -0.4) {
+                cameraTrunRight = true;
             }
 
             spoltLight.rotation.x += 0.01;
             spoltLight.rotation.y += 0.01;
-            
-            cubeArray.forEach(i=>{
+
+            cubeArray.forEach(i => {
                 i.position.z += 0.1;
-                if(i.position.z>(colnum/2)){
-                    i.position.z=-(colnum/2);
+                if (i.position.z > (colnum / 2)) {
+                    i.position.z = -(colnum / 2);
                 }
             });
-            cubeArrayTop.forEach(i=>{
+            cubeArrayTop.forEach(i => {
                 i.position.z += 0.1;
-                if(i.position.z>(colnum/2)){
-                    i.position.z=-(colnum/2);
+                if (i.position.z > (colnum / 2)) {
+                    i.position.z = -(colnum / 2);
                 }
             });
-            renderer.render( scene, camera );
+            //renderer.render(scene, camera);
+            composer.render();
         }
         animate();
     </script>

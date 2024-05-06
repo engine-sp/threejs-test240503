@@ -9,19 +9,33 @@
     </style>
 </head>
 <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r99/three.min.js"
-        integrity="sha512-0tlhMhMGPohLm/YwaskxH7jJuUGqU/XPTl+HE0dWrhGbpEBRIZYMQdbHC0CmyNPzZKTBd8JoVZnvMcL7hzlFOg=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script>
+    <script type="importmap">
+        {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/",
+            "three/EffectComposer": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/postprocessing/EffectComposer.js",
+            "three/RenderPass": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/postprocessing/RenderPass.js",
+            "three/UnrealBloomPass": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/postprocessing/UnrealBloomPass.js"
+        }
+        }
+    </script>
+    <script type="module">
         //3D Texture:https://3dtextures.me/2019/12/27/glass-blocks-001a/
         //light:https://ithelp.ithome.com.tw/m/articles/10192203
         //霧：https://github.com/puxiao/threejs-tutorial/blob/main/14%20Three.js%E5%9F%BA%E7%A1%80%E4%B9%8B%E9%9B%BE.md
+        import * as THREE from 'three';
+        import { EffectComposer } from "three/EffectComposer";
+        import { RenderPass } from "three/RenderPass";
+        import { UnrealBloomPass } from "three/UnrealBloomPass";
+
+
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
         const renderer = new THREE.WebGLRenderer();
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        document.body.appendChild( renderer.domElement );
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
         //載入貼圖1
         const glassMap = new THREE.TextureLoader().load(
@@ -58,41 +72,46 @@
         //normalMap.repeat.set(5,5);
         glassMetalnessMap.wrapT = THREE.RepeatWrapping;
         glassMetalnessMap.wrapS = THREE.RepeatWrapping;
-        
-        var colorRed = Math.floor(Math.random()*255);
+
+        var colorRed = Math.floor(Math.random() * 255);
         var colorGreen = Math.floor(Math.random() * 255);
         var colorBlue = Math.floor(Math.random() * 255);
 
         //材質設定
         const glassMat = new THREE.MeshStandardMaterial({
-            color: "rgb("+ colorRed+"," + colorGreen +"," + colorBlue +")",
+            color: "rgb(" + colorRed + "," + colorGreen + "," + colorBlue + ")",
             roughness: 0.3, // 粗糙度
             metalness: 0.1, // 金屬感
             transparent: false, // 透明與否
             opacity: 1, // 透明度
             side: THREE.DoubleSide, // 雙面材質
             map: glassMap, // 皮膚貼圖
-            roughnessMap:roughnessMap, //粗糙貼圖
-            normalMap:normalMap, //髮線貼圖
-            lightMap:ambientOcclusionMap, //光照贴图
-            metalnessMap:glassMetalnessMap //金屬貼圖
+            roughnessMap: roughnessMap, //粗糙貼圖
+            normalMap: normalMap, //髮線貼圖
+            lightMap: ambientOcclusionMap, //光照贴图
+            metalnessMap: glassMetalnessMap //金屬貼圖
         });
 
 
         const geometry = new THREE.BoxGeometry(1, 2, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        const cube = new THREE.Mesh(geometry, glassMat);
-        scene.add(cube);
+        const geometry2 = new THREE.BoxGeometry(0.5, 0.5, 0.1);
+        const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+        const cubeA = new THREE.Mesh(geometry, glassMat);
+        const cubeB = new THREE.Mesh(geometry2, material);
+        const group = new THREE.Group();
+        group.add(cubeA);
+        group.add(cubeB);
+        scene.add(group);
+        cubeB.position.z = 0.5;
 
-        
-        
-        
 
-        
+
+
+
         //場景背景
-        scene.background = new THREE.Color(0xFFFFFF);
+        scene.background = new THREE.Color(0x000000);
         //霧化場景
-        scene.fog = new THREE.Fog(0xFFFFFF,10,15);
+        scene.fog = new THREE.Fog(0x000000, 10, 15);
 
         //環境光
         let ambientLight = new THREE.AmbientLight('#FFFFFF')
@@ -109,22 +128,36 @@
         scene.add(spoltLight);
         */
 
-        const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-        directionalLight.target = cube;
-        scene.add( directionalLight );
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.target = group;
+        scene.add(directionalLight);
 
-        directionalLight.position.z=1;
-        directionalLight.position.y=0;
+        directionalLight.position.z = 1;
+        directionalLight.position.y = 0;
 
         camera.position.z = 5;
-        
+
+
+        // 5. 建立 UnrealBloomPass 物件
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+
+        // 6. 建立合成器
+        const composer = new EffectComposer(renderer);
+        composer.setSize(window.innerWidth, window.innerHeight);
+
+        // 7. 將 UnrealBloomPass 加入合成器
+        const renderScene = new RenderPass(scene, camera);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
+
 
         function animate() {
-            requestAnimationFrame( animate );
-            cube.rotation.x += 0.01;
+            requestAnimationFrame(animate);
+            group.rotation.x += 0.01;
             //cube.rotation.y += 0.01;
             //cube.rotation.z += 0.01;
-            renderer.render( scene, camera );
+            //renderer.render(scene, camera);
+            composer.render();
         }
         animate();
     </script>
