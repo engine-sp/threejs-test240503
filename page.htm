@@ -32,6 +32,29 @@
         import { UnrealBloomPass } from "three/UnrealBloomPass";
         import { Lensflare, LensflareElement } from 'three/addonsLensflare';
 
+
+        function trainGroupCreate(trainCube, trainLightCube){
+            const trainCubeA = trainCube.clone();
+            const trainCubeB = trainCube.clone();
+            const trainCubeC = trainCube.clone();
+            const trainLightCubeA = trainLightCube.clone();
+            const trainLightCubeB = trainLightCube.clone();
+            const trainLightCubeC = trainLightCube.clone();
+            const trainGroup = new THREE.Group();
+            trainGroup.add(trainCubeA);
+            trainGroup.add(trainCubeB);
+            trainGroup.add(trainCubeC);
+            trainGroup.add(trainLightCubeA);
+            trainGroup.add(trainLightCubeB);
+            trainGroup.add(trainLightCubeC);
+            trainCubeB.position.z = -1.5;
+            trainCubeC.position.z = -3;
+            trainLightCubeA.position.z = 0.5;
+            trainLightCubeB.position.z = -1.2;
+            trainLightCubeC.position.z = -2.8;
+            return trainGroup;
+        }
+
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1500);
 
@@ -40,13 +63,7 @@
         document.body.appendChild(renderer.domElement);
 
 
-        /*const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        const cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
         
-        const cube2 = new THREE.Mesh(geometry, material);
-        scene.add(cube2);*/
 
         //光定位箱1
         const geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -123,10 +140,6 @@
 
         //虛擬建築物定位
         for (var i = 0; i < cubnum; i++) {
-            //const geometry = new THREE.BoxGeometry(1, 1, 1);
-            //const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-            //const cube = new THREE.Mesh(geometry, material);
-            //cube.position.x = 60 * i;
             var colorRed = Math.floor(Math.random() * 55) + 200;
             var colorGreen = Math.floor(Math.random() * 155) + 50;
             var colorBlue = Math.floor(Math.random() * 55) + 200;
@@ -223,7 +236,67 @@
             }
         }
 
+        //模擬飛行列車
+        var traincolorRed = Math.floor(Math.random() * 55) + 200;
+        var traincolorGreen = Math.floor(Math.random() * 155) + 50;
+        var traincolorBlue = Math.floor(Math.random() * 55) + 200;
+        const trainGeometry = new THREE.BoxGeometry(0.05, 0.05, 1);
+        const trainMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0xd836d8, 
+            transparent: true, // 透明與否
+            opacity: 0.55, // 透明度
+            roughness: 1, // 粗糙度
+            metalness: 0.5,
+            map: normalMap, //髮線貼圖
+            roughnessMap: roughnessMap,//粗糙貼圖
+        });
+        const trainLightGeo = new THREE.BoxGeometry(0.06, 0.06, 0.06);
+        const trainLightMat = new THREE.MeshBasicMaterial({ 
+            metalness: 1,
+            emissive: "rgb(" + colorRed + "," + colorGreen + "," + colorBlue + ")",
+            emissiveIntensity: 4,
+        });
+        const trainCube = new THREE.Mesh(trainGeometry, trainMaterial);
+        const trainLightCube = new THREE.Mesh(trainLightGeo, trainLightMat);
 
+        const trainGroup = trainGroupCreate(trainCube, trainLightCube);
+        trainGroup.position.z = -20;
+        trainGroup.position.x = -20;
+        trainGroup.rotation.y= Math.PI / 3;
+        trainGroup.speed = (Math.random() * 1 + 1) * 0.1; //自訂屬性
+
+        const trainGroup2 = trainGroupCreate(trainCube, trainLightCube);
+        trainGroup2.position.x=-2;
+        trainGroup2.position.y=-1.12;
+        trainGroup2.position.z=-20;
+        trainGroup2.speed = (Math.random() * 1 + 1) * 0.1; //自訂屬性
+
+        const trainGroup3 = trainGroupCreate(trainCube, trainLightCube);
+        trainGroup3.rotation.y = Math.PI;
+        trainGroup3.position.x = 3;
+        trainGroup3.position.y = 1.15;
+        trainGroup3.position.z = 10;
+        trainGroup3.speed = (Math.random() * 1 + 1) * 0.1; //自訂屬性
+
+        const trainGroup4 = trainGroupCreate(trainCube, trainLightCube);
+        trainGroup4.position.x=6;
+        trainGroup4.position.y=-1.12;
+        trainGroup4.position.z=-20;
+        trainGroup4.speed = (Math.random() * 1 + 1) * 0.1; //自訂屬性
+
+
+        const trainGroup5 = trainGroupCreate(trainCube, trainLightCube);
+        trainGroup5.rotation.y = Math.PI;
+        trainGroup5.position.x = -6;
+        //trainGroup5.position.y = -1.15;
+        trainGroup5.position.z = 10;
+        trainGroup5.speed = (Math.random() * 1 + 1) * 0.1; //自訂屬性
+        
+        scene.add(trainGroup);
+        scene.add(trainGroup2);
+        scene.add(trainGroup3);
+        scene.add(trainGroup4);
+        scene.add(trainGroup5);
 
         //場景背景
         //scene.background = new THREE.Color(0x000000);
@@ -248,7 +321,7 @@
 
         //test
         const bgcolorbox = new THREE.Mesh(
-            new THREE.BoxGeometry(colnum*20, 25, 0),
+            new THREE.BoxGeometry(colnum*20, 35, 0),
             new THREE.MeshBasicMaterial({ 
                 color: 0x3747ae, 
                 transparent: true, /*透明與否*/ 
@@ -316,6 +389,31 @@
                     i.position.z = -(colnum / 2);
                 }
             });
+
+            trainGroup.position.z += trainGroup.speed;
+            trainGroup.position.x += trainGroup.speed;
+            if(trainGroup.position.z>10){
+                trainGroup.position.z=-10;
+            }
+            if (trainGroup.position.x > 10) {
+                trainGroup.position.x = -10;
+            }
+            const toCloseAni = [trainGroup2, trainGroup4];
+            toCloseAni.forEach((aniObj)=>{
+                aniObj.position.z += aniObj.speed;
+                if (aniObj.position.z > 10) {
+                    aniObj.position.z = -10;
+                }
+            });
+            
+            const toLeaveAni = [trainGroup3, trainGroup5];
+            toLeaveAni.forEach((aniObj)=>{
+                aniObj.position.z -= aniObj.speed;
+                if (aniObj.position.z < -20) {
+                    aniObj.position.z = 10;
+                }
+            });
+
 
             //renderer.render(scene, camera);
             composer.render();
