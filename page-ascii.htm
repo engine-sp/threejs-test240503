@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        html,body{padding:0;margin:0;overflow: hidden;}
+        html,body{padding:0;margin:0;overflow: hidden;background:#000;}
         .title{
             position:fixed;z-index:6;margin:auto;top:0;right:0;bottom:0;left:0;max-width:80%;
         }
+        .asciibox{opacity: 0;transition: opacity 5s;}
+        .asciibox.open{opacity:1;}
     </style>
 </head>
 <body>
@@ -27,11 +29,11 @@
         //light:https://ithelp.ithome.com.tw/m/articles/10192203
         //霧：https://github.com/puxiao/threejs-tutorial/blob/main/14%20Three.js%E5%9F%BA%E7%A1%80%E4%B9%8B%E9%9B%BE.md
         // https://polyhaven.com/a/sunflowers_puresky
+
+
         import * as THREE from 'three';
         import { AsciiEffect } from 'three/addonsAsciiEffect';
 
-
-        
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1500);
@@ -44,9 +46,10 @@
         effect.setSize(window.innerWidth, window.innerHeight);
         effect.domElement.style.color = '#d836d8';
         effect.domElement.style.backgroundColor = 'black';
+        
 
         document.body.appendChild(effect.domElement);
-        
+        effect.domElement.classList.add('asciibox');
 
         //光定位箱1
         const geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -353,6 +356,9 @@
             effect.render(scene, camera);
         }
         animate();
+        setTimeout(function(){
+            document.querySelector('.asciibox').classList.add('open');
+        },1000)
     </script>
 </body>
 </html>
